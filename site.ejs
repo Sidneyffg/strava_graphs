@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.3.0/dist/chart.umd.min.js"></script>
+    <title>Document</title>
+</head>
+
+<body>
+    <div style="width: 800px"><canvas id="acquisitions"></canvas></div>
+
+    <script>
+        const data = JSON.parse('<%- JSON.stringify(data) %>')
+
+        let chart = new Chart(
+            document.getElementById("acquisitions").getContext("2d"),
+            {
+                type: "line",
+                data: {
+                    labels: data.map((row) => row.month),
+                    datasets: [
+                        {
+                            label: "Distance",
+                            data: data.map((row) => row.distance / 1000),
+                            yAxisID: "y"
+                        },
+                        {
+                            label: "Total runs",
+                            data: data.map((row) => row.totalRuns),
+                            yAxisID: "y1"
+                        }
+                    ]
+                },
+                options: {
+                    scales: {
+                        y: {
+                            min: 0,
+                            max: Math.max(...data.map(row => row.distance)) / 1000 * 1.2,
+                            position: "left"
+                        },
+                        y1: {
+                            min: 0,
+                            max: Math.max(...data.map(row => row.totalRuns)) * 1.2,
+                            position: "right"
+                        }
+                    },
+                    interaction: {
+                        mode: 'index',
+                        intersect: false,
+                    },
+                    stacked: false
+                },
+            }
+        );
+    </script>
+</body>
+
+</html>

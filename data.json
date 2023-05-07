@@ -1,0 +1,27 @@
+[
+  {
+    "distance": 30365.300000000003,
+    "totalRuns": 9,
+    "month": "January"
+  },
+  {
+    "distance": 14246.099999999999,
+    "totalRuns": 3,
+    "month": "February"
+  },
+  {
+    "distance": 9496.5,
+    "totalRuns": 2,
+    "month": "March"
+  },
+  {
+    "distance": 9443.3,
+    "totalRuns": 2,
+    "month": "April"
+  },
+  {
+    "distance": 7957.5,
+    "totalRuns": 2,
+    "month": "May"
+  }
+]
