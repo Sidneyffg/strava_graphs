@@ -10,27 +10,35 @@
 </head>
 
 <body>
-    <div style="width: 800px"><canvas id="acquisitions"></canvas></div>
+    <div style="display: flex; gap: 20px;">
+        <div style="width: 800px"><canvas id="lineChart"></canvas></div>
+        <div style="width: 300px;"><canvas id="pieChart"></canvas></div>
+    </div>
+    <div style="width: 800px"><canvas id="barChart"></canvas></div>
 
     <script>
         const data = JSON.parse('<%- JSON.stringify(data) %>')
 
         let chart = new Chart(
-            document.getElementById("acquisitions").getContext("2d"),
+            document.getElementById("lineChart").getContext("2d"),
             {
                 type: "line",
                 data: {
-                    labels: data.map((row) => row.month),
+                    labels: data.months.map((row) => row.month),
                     datasets: [
                         {
                             label: "Distance",
-                            data: data.map((row) => row.distance / 1000),
-                            yAxisID: "y"
+                            data: data.months.map((row) => row.distance / 1000),
+                            yAxisID: "y",
+                            tension: .4,
+                            cubicInterpolationMode: "monotone"
                         },
                         {
                             label: "Total runs",
-                            data: data.map((row) => row.totalRuns),
-                            yAxisID: "y1"
+                            data: data.months.map((row) => row.totalRuns),
+                            yAxisID: "y1",
+                            tension: .4,
+                            cubicInterpolationMode: "monotone"
                         }
                     ]
                 },
@@ -38,12 +46,16 @@
                     scales: {
                         y: {
                             min: 0,
-                            max: Math.max(...data.map(row => row.distance)) / 1000 * 1.2,
-                            position: "left"
+                            max: Math.max(...data.months.map(row => row.distance)) / 1000 * 1.2,
+                            position: "left",
+                            title: {
+                                display: true,
+                                text: "km"
+                            }
                         },
                         y1: {
                             min: 0,
-                            max: Math.max(...data.map(row => row.totalRuns)) * 1.2,
+                            max: Math.max(...data.months.map(row => row.totalRuns)) * 1.2,
                             position: "right"
                         }
                     },
@@ -53,6 +65,66 @@
                     },
                     stacked: false
                 },
+            }
+        );
+
+
+
+        const lastMonthRuns = data.months[data.months.length - 1].runs;
+        new Chart(
+            document.getElementById("barChart").getContext("2d"),
+            {
+                type: "bar",
+                data: {
+                    labels: lastMonthRuns.map((row) => row.name),
+                    datasets: [
+                        {
+                            label: "Distance",
+                            data: lastMonthRuns.map((row) => row.distance / 1000),
+                            yAxisID: "y"
+                        },
+                        {
+                            label: "Moving time",
+                            data: lastMonthRuns.map((row) => row.moving_time / 60),
+                            yAxisID: "y1"
+                        }
+                    ]
+                },
+                options: {
+                    scales: {
+                        y: {
+                            min: 0,
+                            max: Math.max(...lastMonthRuns.map(row => row.distance)) / 1000 * 1.2,
+                            position: "left"
+                        },
+                        y1: {
+                            min: 0,
+                            max: Math.max(...lastMonthRuns.map(row => row.moving_time / 60)) * 1.2,
+                            position: "right"
+                        }
+                    },
+                    interaction: {
+                        mode: 'index',
+                        intersect: false,
+                    },
+                    stacked: false
+                },
+            }
+        );
+
+        new Chart(
+            document.getElementById("pieChart").getContext("2d"),
+            {
+                type: "pie",
+                data: {
+                    labels: Object.keys(data.data.run_types),
+                    datasets: [
+                        {
+                            label: "Runs",
+                            data: Object.values(data.data.run_types)
+                        }
+                    ]
+                }
             }
         );
     </script>
