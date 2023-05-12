@@ -4,6 +4,7 @@
       {
         "distance": 30365.300000000003,
         "totalRuns": 9,
+        "avgSpeed": 10.570139289254513,
         "month": "January",
         "runs": [
           {
@@ -56,6 +57,7 @@
       {
         "distance": 14246.099999999999,
         "totalRuns": 3,
+        "avgSpeed": 10.29043924442479,
         "month": "February",
         "runs": [
           {
@@ -78,6 +80,7 @@
       {
         "distance": 9496.5,
         "totalRuns": 2,
+        "avgSpeed": 10.929890570210079,
         "month": "March",
         "runs": [
           {
@@ -95,6 +98,7 @@
       {
         "distance": 9443.3,
         "totalRuns": 2,
+        "avgSpeed": 11.386609579278431,
         "month": "April",
         "runs": [
           {
@@ -110,8 +114,9 @@
         ]
       },
       {
-        "distance": 12991.599999999999,
-        "totalRuns": 3,
+        "distance": 21728.8,
+        "totalRuns": 5,
+        "avgSpeed": 11.485328412061412,
         "month": "May",
         "runs": [
           {
@@ -128,6 +133,16 @@
             "distance": 5034.1,
             "moving_time": 1727,
             "name": "Evening Run"
+          },
+          {
+            "distance": 4131.4,
+            "moving_time": 1042,
+            "name": "Evening Run"
+          },
+          {
+            "distance": 4605.8,
+            "moving_time": 1571,
+            "name": "Afternoon Run"
           }
         ]
       }
@@ -139,15 +154,15 @@
         "midnight": 0,
         "morning": 3,
         "lunch": 0,
-        "afternoon": 13,
-        "evening": 3
+        "afternoon": 14,
+        "evening": 4
       }
     }
   },
   "apiData": {
     "token_type": "Bearer",
-    "access_token": "eadbe9130bd76b7c378def7856cabfc9969168c6",
-    "expires_at": 1683578839,
+    "access_token": "e5aa40fba1ca206f806f37a17ec5e0dfce7d4d50",
+    "expires_at": 1683839017,
     "expires_in": 21600,
     "refresh_token": "b5895643345a1d37523b5d23b5faa5ca26b4dd12"
   }

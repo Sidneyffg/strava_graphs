@@ -1,9 +1,9 @@
 const fs = require("fs");
 const express = require("express");
-const { type } = require("os");
 const app = express();
+const polyline = require("@mapbox/polyline")
 app.set("view engine", "ejs");
-
+console.log(polyline.decode("oi{|Hcst\\BeARcCBiBPkCDwBRsDJmEPsBJq@H_@P[L[RqAj@_BLSZ}@b@c@Xe@`BiBHO\\Yx@mA^s@dAeAPWZUTUb@m@Vi@RW`AwBfA}Ct@cB\\iAVm@?BViAFQD?FFx@tAr@vAXRRXn@bB`A~ANZlDjF^t@Rx@Rn@`@jC^jBRzARv@ZdBd@~BRnBRlALhAXvAVz@VjBL\\|@hEd@vFP~@Bj@VdBZ~ACFu@d@EFAH?T\\zCJvDAx@Kh@IVOTuAdAy@p@IDIEIWGKKCYHO?QE[Qe@a@qAm@SA{@LQAE@ADCn@]pCU`AE^Ml@Ix@SbA?RHZALe@|Bs@dFSlAO\\KFiAV"))
 const data = JSON.parse(fs.readFileSync("./data.json"));
 
 app.get("/", (req, res) => {
@@ -58,7 +58,9 @@ function getDataFromServer() {
   fetch(link)
     .then((res) => res.json())
     .then((res) => {
-      console.log(res);
+      fs.writeFile("./runs.json", JSON.stringify(res, null, 2), err => {
+        if (err) throw err
+      })
       const date = new Date(),
         totalMonths = date.getFullYear() * 12 + date.getMonth(),
         firstActivityDate = new Date(res[res.length - 1].start_date);
@@ -66,9 +68,9 @@ function getDataFromServer() {
       let newData = {
         months: new Array(
           totalMonths -
-            (firstActivityDate.getFullYear() * 12 +
-              firstActivityDate.getMonth()) +
-            1
+          (firstActivityDate.getFullYear() * 12 +
+            firstActivityDate.getMonth()) +
+          1
         ),
         data: {
           totalDistance: 0,
@@ -86,6 +88,7 @@ function getDataFromServer() {
         newData.months[i] = {
           distance: 0,
           totalRuns: 0,
+          avgSpeed: 0,
           month: months[firstActivityDate.getMonth() + i],
           runs: [],
         };
@@ -103,12 +106,14 @@ function getDataFromServer() {
 
         newData.months[month].distance += activity.distance;
         newData.months[month].totalRuns++;
+        newData.months[month].avgSpeed += activity.average_speed * 3.6 * activity.distance;
         newData.months[month].runs.unshift({
           distance: activity.distance,
           moving_time: activity.moving_time,
           name: activity.name,
         });
       });
+      newData.months.forEach(e => e.avgSpeed /= e.distance)
       data.activityData = newData;
       saveData();
     });

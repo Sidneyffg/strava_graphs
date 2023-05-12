@@ -34,9 +34,16 @@
                             cubicInterpolationMode: "monotone"
                         },
                         {
+                            label: "Average speed",
+                            data: data.months.map((row) => row.avgSpeed),
+                            yAxisID: "y1",
+                            tension: .4,
+                            cubicInterpolationMode: "monotone"
+                        },
+                        {
                             label: "Total runs",
                             data: data.months.map((row) => row.totalRuns),
-                            yAxisID: "y1",
+                            yAxisID: "y2",
                             tension: .4,
                             cubicInterpolationMode: "monotone"
                         }
@@ -55,8 +62,17 @@
                         },
                         y1: {
                             min: 0,
+                            max: Math.max(...data.months.map(row => row.avgSpeed)) * 1.2,
+                            position: "right",
+                            title: {
+                                display: true,
+                                text: "km/h"
+                            }
+                        },
+                        y2: {
+                            min: 0,
                             max: Math.max(...data.months.map(row => row.totalRuns)) * 1.2,
-                            position: "right"
+                            display: false
                         }
                     },
                     interaction: {
@@ -64,7 +80,7 @@
                         intersect: false,
                     },
                     stacked: false
-                },
+                }
             }
         );
 
