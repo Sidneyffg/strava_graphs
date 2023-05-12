@@ -1,14 +1,31 @@
 const fs = require("fs");
 const express = require("express");
 const app = express();
-const polyline = require("@mapbox/polyline")
+const polyline = require("@mapbox/polyline");
 app.set("view engine", "ejs");
-console.log(polyline.decode("oi{|Hcst\\BeARcCBiBPkCDwBRsDJmEPsBJq@H_@P[L[RqAj@_BLSZ}@b@c@Xe@`BiBHO\\Yx@mA^s@dAeAPWZUTUb@m@Vi@RW`AwBfA}Ct@cB\\iAVm@?BViAFQD?FFx@tAr@vAXRRXn@bB`A~ANZlDjF^t@Rx@Rn@`@jC^jBRzARv@ZdBd@~BRnBRlALhAXvAVz@VjBL\\|@hEd@vFP~@Bj@VdBZ~ACFu@d@EFAH?T\\zCJvDAx@Kh@IVOTuAdAy@p@IDIEIWGKKCYHO?QE[Qe@a@qAm@SA{@LQAE@ADCn@]pCU`AE^Ml@Ix@SbA?RHZALe@|Bs@dFSlAO\\KFiAV"))
 const data = JSON.parse(fs.readFileSync("./data.json"));
+let activities = JSON.parse(fs.readFileSync("./activities.json"));
 
 app.get("/", (req, res) => {
   res.render(__dirname + "/site.ejs", {
     data: data.activityData,
+  });
+});
+
+app.get("/activity/*", (req, res) => {
+  const activity_id = req.url.split("/")[2];
+  const activity = activities.find((e) => e.id == activity_id);
+  if (!activity) {
+    res.redirect("/");
+    return;
+  }
+
+  let coords = polyline.decode(activity.map.summary_polyline);
+  for (let i = 0; i < coords.length; i++) {
+    coords[i] = { lat: coords[i][0], lng: coords[i][1] };
+  }
+  res.render(__dirname + "/activity/activity.ejs", {
+    coords: coords,
   });
 });
 
@@ -19,7 +36,6 @@ app.listen(3000, (req, res) => {
 refreshData();
 async function refreshData() {
   if (data.apiData.expires_at < Date.now() / 1000) {
-    console.log("ello");
     fetch("https://www.strava.com/api/v3/oauth/token", {
       body: "client_id=106934&client_secret=aa5fc77933f7643d2b86c14c59f57367332b100d&grant_type=refresh_token&refresh_token=b5895643345a1d37523b5d23b5faa5ca26b4dd12",
       headers: {
@@ -34,7 +50,6 @@ async function refreshData() {
       });
     return;
   }
-  console.log("ella");
   getDataFromServer();
 }
 
@@ -58,9 +73,10 @@ function getDataFromServer() {
   fetch(link)
     .then((res) => res.json())
     .then((res) => {
-      fs.writeFile("./runs.json", JSON.stringify(res, null, 2), err => {
-        if (err) throw err
-      })
+      activities = res;
+      fs.writeFile("./activities.json", JSON.stringify(res, null, 2), (err) => {
+        if (err) throw err;
+      });
       const date = new Date(),
         totalMonths = date.getFullYear() * 12 + date.getMonth(),
         firstActivityDate = new Date(res[res.length - 1].start_date);
@@ -68,9 +84,9 @@ function getDataFromServer() {
       let newData = {
         months: new Array(
           totalMonths -
-          (firstActivityDate.getFullYear() * 12 +
-            firstActivityDate.getMonth()) +
-          1
+            (firstActivityDate.getFullYear() * 12 +
+              firstActivityDate.getMonth()) +
+            1
         ),
         data: {
           totalDistance: 0,
@@ -106,14 +122,15 @@ function getDataFromServer() {
 
         newData.months[month].distance += activity.distance;
         newData.months[month].totalRuns++;
-        newData.months[month].avgSpeed += activity.average_speed * 3.6 * activity.distance;
+        newData.months[month].avgSpeed +=
+          activity.average_speed * 3.6 * activity.distance;
         newData.months[month].runs.unshift({
           distance: activity.distance,
           moving_time: activity.moving_time,
           name: activity.name,
         });
       });
-      newData.months.forEach(e => e.avgSpeed /= e.distance)
+      newData.months.forEach((e) => (e.avgSpeed /= e.distance));
       data.activityData = newData;
       saveData();
     });
@@ -127,7 +144,7 @@ function getRunTime(start_date_local) {
 
   for (let i = 0; i < times.length; i++) {
     if (hours < times[i]) {
-      console.log(start_date_local, hours, types[i]);
+      //console.log(start_date_local, hours, types[i]);
       return types[i];
     }
   }
