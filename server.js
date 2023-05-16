@@ -7,24 +7,29 @@ const data = JSON.parse(fs.readFileSync("./data.json"));
 let activities = JSON.parse(fs.readFileSync("./activities.json"));
 
 app.get("/", (req, res) => {
-  res.render(__dirname + "/site.ejs", {
+  res.render(__dirname + "/website/site.ejs", {
     data: data.activityData,
   });
 });
 
-app.get("/activity/*", (req, res) => {
+app.get("/activity/latest", (req, res) => {
+  res.redirect("/activity/" + activities[0].id);
+});
+
+app.get("/activity/*", async (req, res) => {
   const activity_id = req.url.split("/")[2];
-  const activity = activities.find((e) => e.id == activity_id);
-  if (!activity) {
+  if (!activities.find((e) => e.id == activity_id)) {
     res.redirect("/");
     return;
   }
 
-  let coords = polyline.decode(activity.map.summary_polyline);
+  const activity = await getActivityData(activity_id);
+  let coords = polyline.decode(activity.map.polyline);
   for (let i = 0; i < coords.length; i++) {
     coords[i] = { lat: coords[i][0], lng: coords[i][1] };
   }
-  res.render(__dirname + "/activity/activity.ejs", {
+  res.render(__dirname + "/website/activity.ejs", {
+    activity: activity,
     coords: coords,
   });
 });
@@ -33,7 +38,7 @@ app.listen(3000, (req, res) => {
   console.log("server is running");
 });
 
-refreshData();
+//refreshData();
 async function refreshData() {
   if (data.apiData.expires_at < Date.now() / 1000) {
     fetch("https://www.strava.com/api/v3/oauth/token", {
@@ -51,6 +56,15 @@ async function refreshData() {
     return;
   }
   getDataFromServer();
+}
+
+async function getActivityData(id) {
+  const link = `https://www.strava.com/api/v3/activities/${id}?include_all_efforts=false&access_token=${data.apiData.access_token}`;
+  return await fetch(link)
+    .then((res) => res.json())
+    .then((res) => {
+      return res;
+    });
 }
 
 function getDataFromServer() {

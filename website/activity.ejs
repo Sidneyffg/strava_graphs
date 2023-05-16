@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>activity</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css"
+        integrity="sha256-kLaT2GOSpHechhsozzB+flnD+zUyjE2LlfWPgU04xyI=" crossorigin="" />
+    <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"
+        integrity="sha256-WBkoXOwTeyKclOHuWtc+i2uENFpDZ9YPdf5Hf+D7ewM=" crossorigin=""></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.3.0/dist/chart.umd.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <h1>
+        <%= activity.name %>
+    </h1>
+    <ul>
+        <li>Distance: <%= Math.round(activity.distance/100)/10 %> km
+        </li>
+        <li>Avg Pace: <%= Math.round(activity.average_speed * 36)/10 %> km/h
+        </li>
+        <% const m=Math.floor(activity.moving_time / 60), s=activity.moving_time - m*60; %>
+            <li>Moving Time: <%= `${m}:${s/10>1?s:"0"+s}` %>
+            </li>
+            <li>Calories: <%= Math.round(activity.calories) %>
+            </li>
+    </ul>
+    <div style="display: flex;">
+        <div id="map" style="width: 400px; height: 400px;"></div>
+        <div style="width: 800px; height: 400px;"><canvas id="lineChart"></canvas></div>
+    </div>
+</body>
+<script>
+    const map = L.map("map")
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 17,
+        minZoom: 13,
+        attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+    }).addTo(map);
+    const polyline = L.polyline(JSON.parse(`<%- JSON.stringify(coords) %>`), {
+        color: "green",
+        weight: 5,
+        lineJoin: "round",
+        opacity: .7
+    }).addTo(map)
+    map.fitBounds(polyline.getBounds())
+
+    const splits = JSON.parse(`<%- JSON.stringify(activity.splits_metric) %>`)
+    new Chart(
+        document.getElementById("lineChart").getContext("2d"),
+        {
+            type: "line",
+            data: {
+                labels: splits.map((row) => row.split + " km"),
+                datasets: [
+                    {
+                        label: "Average Speed",
+                        data: splits.map((row) => row.average_speed * 3.6),
+                        yAxisID: "y",
+                        tension: .4,
+                        cubicInterpolationMode: "monotone"
+                    },
+                    {
+                        label: "Time not moving",
+                        data: splits.map((row) => row.elapsed_time - row.moving_time),
+                        yAxisID: "y2",
+                        tension: .4,
+                        cubicInterpolationMode: "monotone",
+                        type: "bar"
+                    }
+                ]
+            },
+            options: {
+                scales: {
+                    y: {
+                        min: 0,
+                        max: Math.max(...splits.map(row => row.average_speed * 3.6)) * 1.2,
+                        position: "left",
+                        title: {
+                            display: true,
+                            text: "km/h"
+                        },
+                        stacked: true
+                    },
+                    y2: {
+                        min: 0,
+                        max: Math.max(...splits.map(row => row.elapsed_time - row.moving_time)) * 1.5,
+                        position: "right"
+                    }
+                },
+                interaction: {
+                    mode: 'index',
+                    intersect: false,
+                },
+                stacked: false
+            }
+        }
+    );
+</script>
+<style>
+    * {
+        font-family: "roboto";
+    }
+</style>
+
+</html>
